@@ -12,21 +12,31 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mad_android_book_app.ui.theme.MADAndroidBookAppTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import java.util.Date
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,6 +65,9 @@ fun BookListScreen(
     bookDao: BookDao,
     modifier: Modifier = Modifier,
 ) {
+    // Prepare state for the add book dialog
+    var addBook by remember { mutableStateOf(false) }
+
     // Coroutine scope for async db operations (without blocking main thread)
     val coroutineScope = rememberCoroutineScope()
 
@@ -83,7 +96,7 @@ fun BookListScreen(
 
         // Add New Book Button
         Button(
-            onClick = {},
+            onClick = { addBook = true },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
@@ -103,6 +116,103 @@ fun BookListScreen(
             }
         }
     }
+
+    // Display the Add Book Dialog when addBook is true
+    if (addBook) {
+        AddBookDialog(
+            onDismiss = { addBook = false },
+            dbScope = coroutineScope,
+            bookDao = bookDao,
+            books = books
+        )
+    }
+}
+
+// Add Book Dialog
+@Composable
+fun AddBookDialog(
+    onDismiss: () -> Unit,
+    dbScope: CoroutineScope,
+    bookDao: BookDao,
+    books: SnapshotStateList<Book>
+) {
+    // Prepare states for each of the Book class attributes
+    var newTitle by remember { mutableStateOf("") }
+    var newAuthor by remember { mutableStateOf("") }
+    var newGenre by remember { mutableStateOf("") }
+    var newTotalPages by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Add a New Book") },
+        text = {
+            Column {
+                // Title input
+                TextField(
+                    value = newTitle,
+                    onValueChange = { newTitle = it },
+                    label = { Text("Book Title") }
+                )
+
+                // Author input
+                TextField(
+                    value = newAuthor,
+                    onValueChange = { newAuthor = it },
+                    label = { Text("Book Author") }
+                )
+
+                // Genre input
+                TextField(
+                    value = newGenre,
+                    onValueChange = { newGenre = it },
+                    label = { Text("Book Genre") }
+                )
+
+                // Total Pages input
+                TextField(
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number // Set to Number Input Keyboard
+                    ),
+                    value = newTotalPages,
+                    onValueChange = { newValue ->
+                        // Filter the input so that it only accepts integers explicitly
+                        val filterIntegers = newValue.filter { it.isDigit() }
+                        newTotalPages = filterIntegers
+                    },
+                    label = { Text("Total Pages") }
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                // Ensure that all of the fields are not empty
+                if (newTitle.isNotEmpty() && newAuthor.isNotEmpty() &&
+                    newGenre.isNotEmpty() && newTotalPages.isNotEmpty()) {
+                    dbScope.launch {
+                        // Create new book object
+                        val newBook = Book(title = newTitle, author = newAuthor, genre = newGenre,
+                            dateAdded = Date().time, totalPages = newTotalPages.toInt(),
+                            readingProgress = 0)
+
+                        // Run the insert function from the DAO
+                        bookDao.insertBook(newBook)
+
+                        // Refresh the current local state
+                        books.clear()
+                        books.addAll(bookDao.getAllBooks())
+
+                        // And close the dialog
+                        onDismiss()
+                    }
+                }
+            }) { Text("Add Book") }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 @Composable
