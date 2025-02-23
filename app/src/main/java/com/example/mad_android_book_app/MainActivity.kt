@@ -42,6 +42,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -99,6 +100,39 @@ fun BookListScreen(
     // Books state as a list, storing all of the books (mutable)
     val books = remember { mutableStateListOf<Book>() }
 
+    // Setup states for searching and sorting
+    var searchQuery by remember { mutableStateOf("") }
+    var isSorted by remember { mutableStateOf(false) }
+
+    // Create a filtered state that is derived based on the searchQuery
+    val filteredBooks by remember {
+        derivedStateOf {
+            // If search is empty, return the full list
+            if (searchQuery.isBlank()) {
+                books
+            }
+
+            // Otherwise, filter the book list based on the title
+            else {
+                books.filter { it.title.contains(searchQuery, ignoreCase = true) }
+            }
+        }
+    }
+
+    // And now setup another state which is derived from isSorted
+    // and sorts the filteredBooks by the name if needed
+    val sortedBooks by remember {
+        derivedStateOf {
+            if (isSorted) {
+                filteredBooks.sortedBy { it.title }
+            }
+
+            else {
+                filteredBooks
+            }
+        }
+    }
+
     // Load all of the books from the database upon first load
     LaunchedEffect(Unit) {
         books.addAll(bookDao.getAllBooks())
@@ -107,7 +141,8 @@ fun BookListScreen(
     Column(
         modifier = modifier
             .padding(16.dp)
-            .fillMaxSize()
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // App Heading
         Text(
@@ -116,8 +151,6 @@ fun BookListScreen(
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(4.dp)
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         // Add New Book Button
         Button(
@@ -146,11 +179,28 @@ fun BookListScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        TextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            label = { Text("Search for Books by Name...") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Button(
+            onClick = { isSorted = !isSorted },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF737ADA)
+            )
+        ) {
+            Text(
+                if (isSorted) "Disable Sorting"
+                else "Enable Sorting"
+            )
+        }
 
         // List each book object as scrollable cards
         LazyColumn() {
-            items(books) { book ->
+            items(sortedBooks) { book ->
                 BookCard(
                     book = book
                 )
@@ -272,7 +322,7 @@ fun BookCard(book: Book) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp)
+            .padding(0.dp, 6.dp)
     ) {
         Row(
             modifier = Modifier
