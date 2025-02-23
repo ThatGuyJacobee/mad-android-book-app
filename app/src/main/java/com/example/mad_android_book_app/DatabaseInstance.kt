@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.room.Room
 
 // Prepare a singleton for database access
-class DatabaseInstance {
+object DatabaseInstance {
     private var INSTANCE: AppDatabase? = null
 
     fun getDatabase(context: Context): AppDatabase {
