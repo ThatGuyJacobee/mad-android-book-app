@@ -12,4 +12,8 @@ interface BookDao {
     // Insert a new Book record
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertBook(book: Book)
+
+    // Return a specific Book object by PK (title)
+    @Query("SELECT * FROM books WHERE title = :bookTitle")
+    suspend fun getBook(bookTitle: String): Book
 }

@@ -32,7 +32,6 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -69,9 +68,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.mad_android_book_app.ui.theme.MADAndroidBookAppTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -110,6 +111,27 @@ fun AppNavigation(bookDao: BookDao) {
         startDestination = "book.list" // Set the default to the list screen
     ) {
         composable("book.list") { BookListScreen(navController, bookDao) }
+
+        // Setup a route, that includes an argument/prop that can be passed through
+        // Here, the book title is passed as a String, which is used in the screen function
+        composable(
+            "book.view/{bookTitle}",
+            arguments = listOf(navArgument("bookTitle")
+            { type = NavType.StringType })
+        ) { navBackStackEntry ->
+            // Get the passed through argument
+            val bookTitle = navBackStackEntry.arguments?.getString("bookTitle")
+
+            // If it's set, render the book view screen
+            if (bookTitle != null) {
+                BookViewScreen(navController, bookDao, bookTitle)
+            }
+
+            // Otherwise, render that an error has occurred
+            else {
+                Text("Error: Book parameter was not fulfilled with the navigation request.")
+            }
+        }
     }
 }
 
@@ -226,7 +248,7 @@ fun BookListScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.MenuBook,
                             tint = Color(0xFF55B0DD),
-                            contentDescription = "Add Book",
+                            contentDescription = "Heading Book",
                             modifier = Modifier.size(40.dp)
                         )
                     }
@@ -240,7 +262,7 @@ fun BookListScreen(
                     .padding(innerPadding)
             ) {
                 Column(
-                    modifier = modifier
+                    modifier = Modifier
                         .padding(16.dp, 0.dp)
                         .fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -373,6 +395,8 @@ fun BookListScreen(
                     ) {
                         items(sortedBooks) { book ->
                             BookCard(
+                                navController = navController,
+                                bookDao = bookDao,
                                 book = book
                             )
                         }
@@ -492,9 +516,13 @@ fun AddBookDialog(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun BookCard(book: Book) {
+fun BookCard(navController: NavHostController, bookDao: BookDao, book: Book) {
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        onClick = {
+            // On card click, navigate to the view screen and pass the target book as attribute
+            navController.navigate("book.view/${book.title}")
+        }
     ) {
         Column(
             modifier = Modifier.padding(12.dp)
@@ -585,4 +613,70 @@ fun BookCard(book: Book) {
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BookViewScreen(
+    navController: NavHostController,
+    bookDao: BookDao,
+    bookTitle: String
+) {
+    // Books state as a list, storing the book (mutable)
+    val books = remember { mutableStateListOf<Book>() }
+
+    // Fetch the Book record by the name and add it to the state
+    // Upon screen rendering
+    LaunchedEffect(Unit) {
+        books.add(bookDao.getBook(bookTitle))
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = "Book Management App",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.MenuBook,
+                            tint = Color(0xFF55B0DD),
+                            contentDescription = "Heading Book",
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+                }
+            )
+        },
+        content = { innerPadding ->
+            ConstraintLayout(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(16.dp, 0.dp)
+                        .fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    if (books.size > 0) {
+                        Text(books[0].title)
+                        Text(books[0].author)
+                    }
+
+                    else {
+                        Text("Fetching Book data...")
+                    }
+                }
+            }
+        }
+    )
 }
