@@ -62,6 +62,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -231,8 +232,14 @@ fun BookListScreen(
         TextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            label = { Text("Search for Books by Name...") },
-            modifier = Modifier.fillMaxWidth()
+            label = { Text(
+                "Search for Books by Name...",
+                color = Color.Black
+            ) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(32.dp))
+                .border(2.dp, Color(0xFF737ADA), RoundedCornerShape(32.dp)),
         )
 
         // Button & Dropdown Menu for sorting
