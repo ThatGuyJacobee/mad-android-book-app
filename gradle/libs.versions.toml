@@ -1,5 +1,6 @@
 [versions]
 agp = "8.5.2"
+constraintlayoutCompose = "1.1.0"
 kotlin = "1.9.25"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -9,9 +10,12 @@ lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.9.3"
 composeBom = "2024.12.01"
 room = "2.6.1" # Room version
-ksp = "1.9.10-1.0.13" # KSP plugin version
+ksp = "1.9.10-1.0.13"
+navigationCompose = "2.8.7"
+constraintlayout = "2.2.0" # KSP plugin version
 
 [libraries]
+androidx-constraintlayout-compose = { module = "androidx.constraintlayout:constraintlayout-compose", version.ref = "constraintlayoutCompose" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -32,6 +36,8 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-ksp = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

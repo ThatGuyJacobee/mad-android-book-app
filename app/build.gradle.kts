@@ -56,6 +56,8 @@ dependencies {
     // Room dependencies with KSP
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.constraintlayout.compose)
     ksp(libs.androidx.room.ksp)
 
     // Add Extended Material Icons

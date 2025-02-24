@@ -1,6 +1,5 @@
 package com.example.mad_android_book_app
 
-import android.graphics.Paint.Align
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -26,16 +25,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.CheckCircleOutline
-import androidx.compose.material.icons.filled.FilterAlt
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -43,10 +40,14 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -62,11 +63,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.mad_android_book_app.ui.theme.MADAndroidBookAppTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -83,11 +88,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MADAndroidBookAppTheme {
-                Scaffold( modifier = Modifier.fillMaxSize() ) { innerPadding ->
-                    BookListScreen(
-                        bookDao = bookDao,
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    AppNavigation(bookDao)
                 }
             }
         }
@@ -95,7 +100,23 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
+fun AppNavigation(bookDao: BookDao) {
+    // Create a new NavController
+    val navController = rememberNavController()
+
+    // Setup a NavHost, with all of the available screens
+    NavHost(
+        navController = navController,
+        startDestination = "book.list" // Set the default to the list screen
+    ) {
+        composable("book.list") { BookListScreen(navController, bookDao) }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun BookListScreen(
+    navController: NavHostController,
     bookDao: BookDao,
     modifier: Modifier = Modifier,
 ) {
@@ -188,163 +209,188 @@ fun BookListScreen(
         books.addAll(bookDao.getAllBooks())
     }
 
-    Column(
-        modifier = modifier
-            .padding(16.dp)
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        // App Heading
-        Text(
-            text = "Book Management System",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(4.dp)
-        )
-
-        // Add New Book Button
-        Button(
-            onClick = { addBook = true },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF737ADA)
-            )
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Text(
-                    text = "Add a New Book",
-                    modifier = Modifier.padding(8.dp),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-
-                Icon(
-                    imageVector = Icons.Filled.AddCircle,
-                    contentDescription = "Add Book",
-                    modifier = Modifier.size(32.dp)
-                )
-            }
-        }
-
-        TextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
-            label = { Text(
-                "Search for Books by Name...",
-                color = Color.Black
-            ) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(32.dp))
-                .border(2.dp, Color(0xFF737ADA), RoundedCornerShape(32.dp)),
-        )
-
-        // Button & Dropdown Menu for sorting
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            // Button toggle for the sorting direction
-            Button (
-                onClick = { isSortAscending = !isSortAscending },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF737ADA)
-                )
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    if (isSortAscending) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowDownward,
-                            contentDescription = "Filter Button",
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Text ("Sort Descending")
-                    }
-
-                    else {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowUpward,
-                            contentDescription = "Filter Button",
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Text (
-                            "Sort Ascending",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                }
-            }
-
-            // Button displaying selected filter & paired with dropdown to change
-            Box {
-                Button (
-                    onClick = { sortExpanded = true },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF737ADA)
-                    )
-                ) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Sort,
-                            contentDescription = "Sort Button",
-                            modifier = Modifier.size(28.dp)
-                        )
                         Text(
-                            text = sortingOptions[selectedSortType] ?: "Date Added",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold
+                            text = "Book Management App",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.MenuBook,
+                            tint = Color(0xFF55B0DD),
+                            contentDescription = "Add Book",
+                            modifier = Modifier.size(40.dp)
                         )
                     }
                 }
-
-                DropdownMenu(
-                    expanded = sortExpanded,
-                    onDismissRequest = { sortExpanded = false }
+            )
+        },
+        content = { innerPadding ->
+            ConstraintLayout(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                Column(
+                    modifier = modifier
+                        .padding(16.dp, 0.dp)
+                        .fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    sortingOptions.forEach { type ->
-                        DropdownMenuItem(
-                            text = { Text(type.value) },
-                            onClick = {
-                                selectedSortType = type.key
-                                sortExpanded = false
-                            }
+                    // Add New Book Button
+                    Button(
+                        onClick = { addBook = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF737ADA)
                         )
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                        ) {
+                            Text(
+                                text = "Add a New Book",
+                                modifier = Modifier.padding(8.dp),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+
+                            Icon(
+                                imageVector = Icons.Filled.AddCircle,
+                                contentDescription = "Add Book",
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
                     }
+
+                    // Search field for searching by book name
+                    TextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        label = { Text(
+                            "Search for Books by Name..."
+                        ) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(32.dp))
+                            .border(3.dp, Color(0xFF737ADA), RoundedCornerShape(32.dp)),
+                    )
+
+                    // Button & Dropdown Menu for sorting
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        // Button toggle for the sorting direction
+                        Button (
+                            onClick = { isSortAscending = !isSortAscending },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF737ADA)
+                            )
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                if (isSortAscending) {
+                                    Icon(
+                                        imageVector = Icons.Filled.ArrowDownward,
+                                        contentDescription = "Filter Button",
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                    Text ("Sort Descending")
+                                }
+
+                                else {
+                                    Icon(
+                                        imageVector = Icons.Filled.ArrowUpward,
+                                        contentDescription = "Filter Button",
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                    Text (
+                                        "Sort Ascending",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
+                                }
+                            }
+                        }
+
+                        // Button displaying selected filter & paired with dropdown to change
+                        Box {
+                            Button (
+                                onClick = { sortExpanded = true },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF737ADA)
+                                )
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.Sort,
+                                        contentDescription = "Sort Button",
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                    Text(
+                                        text = sortingOptions[selectedSortType] ?: "Date Added",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                            }
+
+                            DropdownMenu(
+                                expanded = sortExpanded,
+                                onDismissRequest = { sortExpanded = false }
+                            ) {
+                                sortingOptions.forEach { type ->
+                                    DropdownMenuItem(
+                                        text = { Text(type.value) },
+                                        onClick = {
+                                            selectedSortType = type.key
+                                            sortExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // List each book object as scrollable cards
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(sortedBooks) { book ->
+                            BookCard(
+                                book = book
+                            )
+                        }
+                    }
+                }
+
+                // Display the Add Book Dialog when addBook is true
+                if (addBook) {
+                    AddBookDialog(
+                        onDismiss = { addBook = false },
+                        dbScope = coroutineScope,
+                        bookDao = bookDao,
+                        books = books
+                    )
                 }
             }
         }
-
-        // List each book object as scrollable cards
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(sortedBooks) { book ->
-                BookCard(
-                    book = book
-                )
-            }
-        }
-    }
-
-    // Display the Add Book Dialog when addBook is true
-    if (addBook) {
-        AddBookDialog(
-            onDismiss = { addBook = false },
-            dbScope = coroutineScope,
-            bookDao = bookDao,
-            books = books
-        )
-    }
+    )
 }
 
 // Add Book Dialog
