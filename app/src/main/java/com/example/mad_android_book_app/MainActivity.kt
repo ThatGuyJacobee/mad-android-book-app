@@ -26,16 +26,23 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CheckCircleOutline
+import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -102,7 +109,20 @@ fun BookListScreen(
 
     // Setup states for searching and sorting
     var searchQuery by remember { mutableStateOf("") }
-    var isSorted by remember { mutableStateOf(false) }
+
+    val sortingOptions = mapOf(
+        "title" to "Title",
+        "author" to "Author",
+        "genre" to "Genre",
+        "dateAdded" to "Date Added",
+        "totalPages" to "Total Pages",
+        "readingProgress" to "Reading Progress",
+    )
+    var sortExpanded by remember { mutableStateOf(false) }
+    var selectedSortType by remember { mutableStateOf("dateAdded") }
+
+    // Pick direction, by default "descending"
+    var isSortAscending by remember { mutableStateOf(false) }
 
     // Create a filtered state that is derived based on the searchQuery
     val filteredBooks by remember {
@@ -120,15 +140,44 @@ fun BookListScreen(
     }
 
     // And now setup another state which is derived from isSorted
-    // and sorts the filteredBooks by the name if needed
+    // and sorts the filteredBooks by the selected selectedSortType
     val sortedBooks by remember {
         derivedStateOf {
-            if (isSorted) {
-                filteredBooks.sortedBy { it.title }
+            var finalList = filteredBooks
+            // Sort by the currently selected value
+            if (selectedSortType == "title") {
+                finalList = finalList.sortedBy { it.title }
+            }
+
+            else if (selectedSortType == "author") {
+                finalList = finalList.sortedBy { it.author }
+            }
+
+            else if (selectedSortType == "genre") {
+                finalList = finalList.sortedBy { it.genre }
+            }
+
+            else if (selectedSortType == "totalPages") {
+                finalList = finalList.sortedBy { it.totalPages }
+            }
+
+            else if (selectedSortType == "readingProgress") {
+                // Calculate Progress
+                finalList = finalList.sortedBy { ((it.readingProgress / it.totalPages) * 100) }
+            }
+
+            // Otherwise, sort by the dateAdded
+            else {
+                finalList = finalList.sortedBy { it.dateAdded }
+            }
+
+            // Now either reverse the list (if ascending is true) or return the list as it is
+            if (isSortAscending) {
+                finalList.reversed()
             }
 
             else {
-                filteredBooks
+                finalList
             }
         }
     }
@@ -142,7 +191,7 @@ fun BookListScreen(
         modifier = modifier
             .padding(16.dp)
             .fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // App Heading
         Text(
@@ -186,16 +235,86 @@ fun BookListScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Button(
-            onClick = { isSorted = !isSorted },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF737ADA)
-            )
+        // Button & Dropdown Menu for sorting
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Text(
-                if (isSorted) "Disable Sorting"
-                else "Enable Sorting"
-            )
+            // Button toggle for the sorting direction
+            Button (
+                onClick = { isSortAscending = !isSortAscending },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF737ADA)
+                )
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    if (isSortAscending) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowDownward,
+                            contentDescription = "Filter Button",
+                            modifier = Modifier.size(28.dp)
+                        )
+                        Text ("Sort Descending")
+                    }
+
+                    else {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowUpward,
+                            contentDescription = "Filter Button",
+                            modifier = Modifier.size(28.dp)
+                        )
+                        Text (
+                            "Sort Ascending",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
+
+            // Button displaying selected filter & paired with dropdown to change
+            Box {
+                Button (
+                    onClick = { sortExpanded = true },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF737ADA)
+                    )
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Sort,
+                            contentDescription = "Sort Button",
+                            modifier = Modifier.size(28.dp)
+                        )
+                        Text(
+                            text = sortingOptions[selectedSortType] ?: "Date Added",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+
+                DropdownMenu(
+                    expanded = sortExpanded,
+                    onDismissRequest = { sortExpanded = false }
+                ) {
+                    sortingOptions.forEach { type ->
+                        DropdownMenuItem(
+                            text = { Text(type.value) },
+                            onClick = {
+                                selectedSortType = type.key
+                                sortExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
         }
 
         // List each book object as scrollable cards
