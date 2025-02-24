@@ -318,7 +318,9 @@ fun BookListScreen(
         }
 
         // List each book object as scrollable cards
-        LazyColumn() {
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             items(sortedBooks) { book ->
                 BookCard(
                     book = book
@@ -439,92 +441,93 @@ fun AddBookDialog(
 @Composable
 fun BookCard(book: Book) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(0.dp, 6.dp)
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
+        Column(
+            modifier = Modifier.padding(12.dp)
         ) {
-            // Book Preview Image (left)
-            Image(
-                painter = painterResource(id = R.drawable.books_image),
-                contentDescription = "Book Icon",
-                modifier = Modifier
-                    .size(80.dp)
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // Main Content (right)
-            Column() {
-                Text(text = book.title, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-                Text(text = book.author)
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // Flow Row for each bubble, to allow for "flex wrapping"
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                // Main Content (right)
+                Column(
+                    modifier = Modifier.weight(1f) // Allow it to fill space, but don't squish img
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
-                            .border(1.dp, Color.Black, RoundedCornerShape(16.dp))
-                            .background(Color(0xFF55B0DD))
-                            .padding(12.dp, 2.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Tag,
-                            contentDescription = "Genre Tag",
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(2.dp))
-                        Text(text = book.genre)
-                    }
+                    Text(text = book.title, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                    Text(text = book.author)
+                }
 
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
-                            .border(1.dp, Color.Black, RoundedCornerShape(16.dp))
-                            .background(Color(0xFF55B0DD))
-                            .padding(12.dp, 2.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.AutoStories,
-                            contentDescription = "Total Pages",
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(text = book.totalPages.toString())
-                    }
+                // Book Preview Image (top)
+                Image(
+                    painter = painterResource(id = R.drawable.books_image),
+                    contentDescription = "Book Icon",
+                    modifier = Modifier
+                        .size(40.dp)
+                )
+            }
 
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
-                            .border(1.dp, Color.Black, RoundedCornerShape(16.dp))
-                            .background(Color(0xFF55B0DD))
-                            .padding(12.dp, 2.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.CheckCircle,
-                            contentDescription = "Progress",
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = (book.readingProgress / book.totalPages * 100).toString() + "%")
-                    }
+            Spacer(modifier = Modifier.height(6.dp))
+
+            // Flow Row for each bubble, to allow for "flex wrapping"
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .border(1.dp, Color.Black, RoundedCornerShape(16.dp))
+                        .background(Color(0xFF55B0DD))
+                        .padding(12.dp, 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Tag,
+                        contentDescription = "Genre Tag",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(2.dp))
+                    Text(text = book.genre)
+                }
+
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .border(1.dp, Color.Black, RoundedCornerShape(16.dp))
+                        .background(Color(0xFF55B0DD))
+                        .padding(12.dp, 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.AutoStories,
+                        contentDescription = "Total Pages",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(text = book.totalPages.toString())
+                }
+
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .border(1.dp, Color.Black, RoundedCornerShape(16.dp))
+                        .background(Color(0xFF55B0DD))
+                        .padding(12.dp, 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.CheckCircle,
+                        contentDescription = "Progress",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(text = (book.readingProgress / book.totalPages * 100).toString() + "%")
                 }
             }
         }
