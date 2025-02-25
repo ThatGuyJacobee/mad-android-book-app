@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,11 +26,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.LibraryBooks
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.AutoStories
@@ -60,7 +57,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -85,7 +81,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.mad_android_book_app.ui.theme.MADAndroidBookAppTheme
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -153,7 +148,6 @@ fun AppNavigation(bookDao: BookDao) {
 fun BookListScreen(
     navController: NavHostController,
     bookDao: BookDao,
-    modifier: Modifier = Modifier,
 ) {
     // Prepare state for the add book dialog
     var addBook by remember { mutableStateOf(false) }
@@ -421,7 +415,6 @@ fun BookListScreen(
                             items(sortedBooks) { book ->
                                 BookCard(
                                     navController = navController,
-                                    bookDao = bookDao,
                                     book = book
                                 )
                             }
@@ -552,7 +545,7 @@ fun AddBookDialog(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun BookCard(navController: NavHostController, bookDao: BookDao, book: Book) {
+fun BookCard(navController: NavHostController, book: Book) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         onClick = {
