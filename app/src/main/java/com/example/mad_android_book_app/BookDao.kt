@@ -16,4 +16,8 @@ interface BookDao {
     // Return a specific Book object by PK (title)
     @Query("SELECT * FROM books WHERE title = :bookTitle")
     suspend fun getBook(bookTitle: String): Book
+
+    // Delete a specific Book object
+    @Delete()
+    suspend fun deleteBook(book: Book)
 }

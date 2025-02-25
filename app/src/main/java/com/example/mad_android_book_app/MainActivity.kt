@@ -77,6 +77,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.mad_android_book_app.ui.theme.MADAndroidBookAppTheme
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -626,6 +627,13 @@ fun BookViewScreen(
     bookDao: BookDao,
     bookTitle: String
 ) {
+    // States for the edit and delete buttons/dialogs
+    var editBook by remember { mutableStateOf(false) }
+    var deleteBook by remember { mutableStateOf(false) }
+
+    // Coroutine scope for async db operations (without blocking main thread)
+    val coroutineScope = rememberCoroutineScope()
+
     // Books state as a list, storing the book (mutable)
     val books = remember { mutableStateListOf<Book>() }
 
@@ -713,7 +721,7 @@ fun BookViewScreen(
 
                             // Delete Book Button
                             Button(
-                                onClick = { },
+                                onClick = { deleteBook = true },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color(0xFF737ADA)
                                 )
@@ -744,6 +752,68 @@ fun BookViewScreen(
                         Text("Fetching Book data...")
                     }
                 }
+
+                // Display the Delete Book Dialog when deleteBook is true
+                if (deleteBook) {
+                    DeleteBookDialog(
+                        onDismiss = { deleteBook = false },
+                        dbScope = coroutineScope,
+                        bookDao = bookDao,
+                        book = books[0],
+                        navController = navController
+                    )
+                }
+            }
+        }
+    )
+}
+
+@Composable
+fun DeleteBookDialog(
+    onDismiss: () -> Unit,
+    dbScope: CoroutineScope,
+    bookDao: BookDao,
+    book: Book,
+    navController: NavHostController
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Delete a Book") },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text("Confirm that you wish to delete the book from your library?")
+                Row() {
+                    Text("Selected Book: ", fontWeight = FontWeight.SemiBold)
+                    Text(book.title)
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    dbScope.launch {
+                        // Delete the book through the coroutine scope
+                        bookDao.deleteBook(book)
+
+                        // And return back to the main list screen (list will be auto-refreshed)
+                        navController.popBackStack()
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFBE292F)
+                )
+            ) { Text("Delete Book") }
+        },
+        dismissButton = {
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF737ADA)
+                )
+            ) {
+                Text("Cancel")
             }
         }
     )
