@@ -32,6 +32,8 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -76,7 +78,9 @@ import androidx.navigation.navArgument
 import com.example.mad_android_book_app.ui.theme.MADAndroidBookAppTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -625,6 +629,9 @@ fun BookViewScreen(
     // Books state as a list, storing the book (mutable)
     val books = remember { mutableStateListOf<Book>() }
 
+    // Prepare a date formatter for the creation date
+    val dateFormatter = SimpleDateFormat("HH:mm / dd-MM-yyyy", Locale.getDefault())
+
     // Fetch the Book record by the name and add it to the state
     // Upon screen rendering
     LaunchedEffect(Unit) {
@@ -668,8 +675,69 @@ fun BookViewScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     if (books.size > 0) {
-                        Text(books[0].title)
-                        Text(books[0].author)
+                        Text(text = books[0].title, fontSize = 32.sp, fontWeight = FontWeight.Bold)
+                        Text(text = "Author: ${books[0].author}", fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+                        Text(text = "Genre: ${books[0].genre}")
+                        Text(text = "Date Added: ${dateFormatter.format(Date(books[0].dateAdded))}")
+                        Text(text = "Pages: ${books[0].totalPages} / Read: ${books[0].readingProgress}")
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            // Edit Book Button
+                            Button(
+                                onClick = { },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF737ADA)
+                                )
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center,
+                                ) {
+                                    Text(
+                                        text = "Edit Book",
+                                        modifier = Modifier.padding(8.dp),
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+
+                                    Icon(
+                                        imageVector = Icons.Filled.Edit,
+                                        contentDescription = "Edit Book",
+                                        modifier = Modifier.size(32.dp)
+                                    )
+                                }
+                            }
+
+                            // Delete Book Button
+                            Button(
+                                onClick = { },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF737ADA)
+                                )
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center,
+                                ) {
+                                    Text(
+                                        text = "Delete Book",
+                                        modifier = Modifier.padding(8.dp),
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+
+                                    Icon(
+                                        imageVector = Icons.Filled.DeleteForever,
+                                        contentDescription = "Delete Book",
+                                        modifier = Modifier.size(32.dp)
+                                    )
+                                }
+                            }
+                        }
+
                     }
 
                     else {
