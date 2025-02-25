@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Tag
@@ -309,13 +311,23 @@ fun BookListScreen(
                     TextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
-                        label = { Text(
-                            "Search for Books by Name..."
-                        ) },
+                        label = { Text("Search for Books by Name...") },
+                        trailingIcon = {
+                            if (searchQuery.isNotEmpty()) {
+                                // Setup an icon button and set field to empty on click
+                                IconButton(onClick = { searchQuery = "" }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Clear,
+                                        contentDescription = "Clear Field",
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                }
+                            }
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(32.dp))
-                            .border(3.dp, Color(0xFF737ADA), RoundedCornerShape(32.dp)),
+                            .border(3.dp, Color(0xFF737ADA), RoundedCornerShape(32.dp))
                     )
 
                     // Button & Dropdown Menu for sorting
@@ -419,7 +431,7 @@ fun BookListScreen(
                     // Otherwise return a message for no books found
                     else {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().padding(0.dp, 8.dp, 0.dp, 0.dp),
                             horizontalArrangement = Arrangement.Center
                         ) {
                             Text("No Books found...", fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
