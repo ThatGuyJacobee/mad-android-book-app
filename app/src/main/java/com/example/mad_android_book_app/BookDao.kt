@@ -20,4 +20,8 @@ interface BookDao {
     // Delete a specific Book object
     @Delete()
     suspend fun deleteBook(book: Book)
+
+    // Update a specific Book object
+    @Update()
+    suspend fun updateBook(book: Book)
 }

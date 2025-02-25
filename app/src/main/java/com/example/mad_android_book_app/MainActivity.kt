@@ -56,6 +56,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -713,7 +714,7 @@ fun BookViewScreen(
                         ) {
                             // Edit Book Button
                             Button(
-                                onClick = { },
+                                onClick = { editBook = true },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color(0xFF737ADA)
                                 )
@@ -771,6 +772,16 @@ fun BookViewScreen(
                     }
                 }
 
+                // Display the Edit Book Dialog when editBook is true
+                if (editBook) {
+                    EditBookDialog(
+                        onDismiss = { editBook = false },
+                        dbScope = coroutineScope,
+                        bookDao = bookDao,
+                        books = books
+                    )
+                }
+
                 // Display the Delete Book Dialog when deleteBook is true
                 if (deleteBook) {
                     DeleteBookDialog(
@@ -786,6 +797,104 @@ fun BookViewScreen(
     )
 }
 
+// Edit Book Dialog
+@Composable
+fun EditBookDialog(
+    onDismiss: () -> Unit,
+    dbScope: CoroutineScope,
+    bookDao: BookDao,
+    books: SnapshotStateList<Book>
+) {
+    // Prepare states for each of the Book class attributes
+    var newTitle by remember { mutableStateOf(books[0].title) }
+    var newAuthor by remember { mutableStateOf(books[0].author) }
+    var newGenre by remember { mutableStateOf(books[0].genre) }
+    var newTotalPages by remember { mutableStateOf(books[0].totalPages.toString()) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit a Book") },
+        text = {
+            Column {
+                // Title input
+                TextField(
+                    value = newTitle,
+                    onValueChange = { newTitle = it },
+                    label = { Text("Book Title") }
+                )
+
+                // Author input
+                TextField(
+                    value = newAuthor,
+                    onValueChange = { newAuthor = it },
+                    label = { Text("Book Author") }
+                )
+
+                // Genre input
+                TextField(
+                    value = newGenre,
+                    onValueChange = { newGenre = it },
+                    label = { Text("Book Genre") }
+                )
+
+                // Total Pages input
+                TextField(
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number // Set to Number Input Keyboard
+                    ),
+                    value = newTotalPages,
+                    onValueChange = { newValue ->
+                        // Filter the input so that it only accepts integers explicitly
+                        val filterIntegers = newValue.filter { it.isDigit() }
+                        newTotalPages = filterIntegers
+                    },
+                    label = { Text("Total Pages") }
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    // Ensure that all of the fields are not empty
+                    if (newTitle.isNotEmpty() && newAuthor.isNotEmpty() &&
+                        newGenre.isNotEmpty() && newTotalPages.isNotEmpty()) {
+                        dbScope.launch {
+                            // Create new book object
+                            val newBook = Book(title = newTitle, author = newAuthor, genre = newGenre,
+                                dateAdded = Date().time, totalPages = newTotalPages.toInt(),
+                                readingProgress = 0)
+
+                            // Run the update function from the DAO
+                            bookDao.updateBook(newBook)
+
+                            // Refresh the current local state and add the updated book details
+                            books.clear()
+                            books.add(newBook)
+
+                            // And close the dialog
+                            onDismiss()
+                        }
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF228B22)
+                )
+            ) { Text("Edit Book") }
+        },
+        dismissButton = {
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF737ADA)
+                )
+            ) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+// Delete Book Dialog
 @Composable
 fun DeleteBookDialog(
     onDismiss: () -> Unit,
