@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.LibraryBooks
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.AddCircle
@@ -33,6 +34,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.AutoStories
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Edit
@@ -398,16 +400,29 @@ fun BookListScreen(
                         }
                     }
 
-                    // List each book object as scrollable cards
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(sortedBooks) { book ->
-                            BookCard(
-                                navController = navController,
-                                bookDao = bookDao,
-                                book = book
-                            )
+                    // If at least one book is present, return the cards
+                    if (sortedBooks.isNotEmpty()) {
+                        // List each book object as scrollable cards
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(sortedBooks) { book ->
+                                BookCard(
+                                    navController = navController,
+                                    bookDao = bookDao,
+                                    book = book
+                                )
+                            }
+                        }
+                    }
+
+                    // Otherwise return a message for no books found
+                    else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text("No Books found...", fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
                         }
                     }
                 }
@@ -679,7 +694,7 @@ fun BookViewScreen(
                             )
 
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.MenuBook,
+                                imageVector = Icons.Filled.Bookmark,
                                 tint = Color(0xFF55B0DD),
                                 contentDescription = "Heading Book",
                                 modifier = Modifier.size(40.dp)
@@ -860,9 +875,9 @@ fun EditBookDialog(
                         newGenre.isNotEmpty() && newTotalPages.isNotEmpty()) {
                         dbScope.launch {
                             // Create new book object
-                            val newBook = Book(title = newTitle, author = newAuthor, genre = newGenre,
-                                dateAdded = Date().time, totalPages = newTotalPages.toInt(),
-                                readingProgress = 0)
+                            val newBook = Book(id = books[0].id, title = newTitle, author = newAuthor,
+                                genre = newGenre, dateAdded = books[0].dateAdded, totalPages = newTotalPages.toInt(),
+                                readingProgress = books[0].readingProgress)
 
                             // Run the update function from the DAO
                             bookDao.updateBook(newBook)
