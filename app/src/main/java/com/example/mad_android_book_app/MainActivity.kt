@@ -25,9 +25,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.AutoStories
@@ -43,6 +45,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -502,7 +505,7 @@ fun AddBookDialog(
                     }
                 },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF737ADA)
+                    containerColor = Color(0xFF228B22)
                 )
             ) { Text("Add Book") }
         },
@@ -652,20 +655,35 @@ fun BookViewScreen(
                 title = {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Text(
-                            text = "Book Management App",
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        IconButton(
+                            onClick = { navController.popBackStack() }
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
 
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.MenuBook,
-                            tint = Color(0xFF55B0DD),
-                            contentDescription = "Heading Book",
-                            modifier = Modifier.size(40.dp)
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text(
+                                text = "View & Manage Book",
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.MenuBook,
+                                tint = Color(0xFF55B0DD),
+                                contentDescription = "Heading Book",
+                                modifier = Modifier.size(40.dp)
+                            )
+                        }
                     }
                 }
             )
