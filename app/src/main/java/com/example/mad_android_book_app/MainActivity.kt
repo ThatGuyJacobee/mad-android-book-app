@@ -30,6 +30,8 @@ import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Bookmark
@@ -726,7 +728,62 @@ fun BookViewScreen(
                         Text(text = "Author: ${books[0].author}", fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
                         Text(text = "Genre: ${books[0].genre}")
                         Text(text = "Date Added: ${dateFormatter.format(Date(books[0].dateAdded))}")
-                        Text(text = "Pages: ${books[0].totalPages} / Read: ${books[0].readingProgress}")
+                        Text(text = "Read: ${books[0].readingProgress} / Pages: ${books[0].totalPages}")
+
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            IconButton(
+                                onClick = {
+                                    // Check to ensure that the value doesn't go above book pages
+                                    if (books[0].readingProgress < books[0].totalPages) {
+                                        // Make a temporary copy and adjust the value
+                                        val updateBook = books[0].copy()
+                                        updateBook.readingProgress += 1
+
+                                        // Update it in the database
+                                        coroutineScope.launch {
+                                            bookDao.updateBook(updateBook)
+                                        }
+
+                                        // And update it in the local state
+                                        books[0] = updateBook
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.ArrowDropUp,
+                                    contentDescription = "Increment Page Progress",
+                                    modifier = Modifier.size(32.dp)
+                                )
+                            }
+                            Text(books[0].readingProgress.toString(), fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold)
+                            IconButton(
+                                onClick = {
+                                    // Check to ensure that the value doesn't go below 0
+                                    if (books[0].readingProgress > 0) {
+                                        // Make a temporary copy and adjust the value
+                                        val updateBook = books[0].copy()
+                                        updateBook.readingProgress -= 1
+
+                                        // Update it in the database
+                                        coroutineScope.launch {
+                                            bookDao.updateBook(updateBook)
+                                        }
+
+                                        // And update it in the local state
+                                        books[0] = updateBook
+                                    }
+                                },
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.ArrowDropDown,
+                                    contentDescription = "Decrement Page Progress",
+                                    modifier = Modifier.size(32.dp)
+                                )
+                            }
+                        }
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),

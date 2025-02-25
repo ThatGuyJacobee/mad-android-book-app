@@ -12,5 +12,5 @@ data class Book(
     val genre: String,
     val dateAdded: Long, // As a timestamp for date
     val totalPages: Int,
-    val readingProgress: Int, // As a page number
+    var readingProgress: Int, // As a page number
 )
