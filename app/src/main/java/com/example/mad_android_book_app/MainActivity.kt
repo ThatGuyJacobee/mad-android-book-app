@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -68,10 +69,16 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -87,6 +94,8 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.floor
+import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -639,7 +648,7 @@ fun BookCard(navController: NavHostController, book: Book) {
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = (book.readingProgress / book.totalPages * 100).toString() + "%")
+                    Text(text = "${floor((book.readingProgress.toDouble() / book.totalPages.toDouble()) * 100).toInt()}%")
                 }
             }
         }
@@ -728,60 +737,97 @@ fun BookViewScreen(
                         Text(text = "Author: ${books[0].author}", fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
                         Text(text = "Genre: ${books[0].genre}")
                         Text(text = "Date Added: ${dateFormatter.format(Date(books[0].dateAdded))}")
-                        Text(text = "Read: ${books[0].readingProgress} / Pages: ${books[0].totalPages}")
+                        Text(text = "Pages Read: ${books[0].readingProgress} / Total Pages: ${books[0].totalPages}")
 
                         Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            IconButton(
-                                onClick = {
-                                    // Check to ensure that the value doesn't go above book pages
-                                    if (books[0].readingProgress < books[0].totalPages) {
-                                        // Make a temporary copy and adjust the value
-                                        val updateBook = books[0].copy()
-                                        updateBook.readingProgress += 1
-
-                                        // Update it in the database
-                                        coroutineScope.launch {
-                                            bookDao.updateBook(updateBook)
-                                        }
-
-                                        // And update it in the local state
-                                        books[0] = updateBook
-                                    }
-                                }
+                            // Sub-Title for the Reading Progress items
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
+                                Text(text = "Reading Progress", fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
                                 Icon(
-                                    imageVector = Icons.Filled.ArrowDropUp,
-                                    contentDescription = "Increment Page Progress",
-                                    modifier = Modifier.size(32.dp)
+                                    imageVector = Icons.Filled.CheckCircle,
+                                    tint = Color(0xFF228B22),
+                                    contentDescription = "Progress",
+                                    modifier = Modifier.size(28.dp)
                                 )
                             }
-                            Text(books[0].readingProgress.toString(), fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold)
-                            IconButton(
-                                onClick = {
-                                    // Check to ensure that the value doesn't go below 0
-                                    if (books[0].readingProgress > 0) {
-                                        // Make a temporary copy and adjust the value
-                                        val updateBook = books[0].copy()
-                                        updateBook.readingProgress -= 1
 
-                                        // Update it in the database
-                                        coroutineScope.launch {
-                                            bookDao.updateBook(updateBook)
-                                        }
-
-                                        // And update it in the local state
-                                        books[0] = updateBook
-                                    }
-                                },
+                            // Main pie chart and counter
+                            Row(
+                                modifier = Modifier.padding(8.dp, 0.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(20.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Filled.ArrowDropDown,
-                                    contentDescription = "Decrement Page Progress",
-                                    modifier = Modifier.size(32.dp)
-                                )
+                                // Create a pie chart with the percent read
+                                Column() {
+                                    PieChart(
+                                        percentage = (books[0].readingProgress.toDouble() / books[0].totalPages.toDouble()).toFloat(),
+                                        innerText = "${floor((books[0].readingProgress.toDouble() / books[0].totalPages.toDouble()) * 100).toInt()}%",
+                                        radius = 40.dp
+                                    )
+                                }
+
+                                // And besides create a counter to allow for easy incrementing/decrementing
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    IconButton(
+                                        onClick = {
+                                            // Check to ensure that the value doesn't go above book pages
+                                            if (books[0].readingProgress < books[0].totalPages) {
+                                                // Make a temporary copy and adjust the value
+                                                val updateBook = books[0].copy()
+                                                updateBook.readingProgress += 1
+
+                                                // Update it in the database
+                                                coroutineScope.launch {
+                                                    bookDao.updateBook(updateBook)
+                                                }
+
+                                                // And update it in the local state
+                                                books[0] = updateBook
+                                            }
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.ArrowDropUp,
+                                            contentDescription = "Increment Page Progress",
+                                            modifier = Modifier.size(32.dp)
+                                        )
+                                    }
+
+                                    Text(books[0].readingProgress.toString(), fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold)
+
+                                    IconButton(
+                                        onClick = {
+                                            // Check to ensure that the value doesn't go below 0
+                                            if (books[0].readingProgress > 0) {
+                                                // Make a temporary copy and adjust the value
+                                                val updateBook = books[0].copy()
+                                                updateBook.readingProgress -= 1
+
+                                                // Update it in the database
+                                                coroutineScope.launch {
+                                                    bookDao.updateBook(updateBook)
+                                                }
+
+                                                // And update it in the local state
+                                                books[0] = updateBook
+                                            }
+                                        },
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.ArrowDropDown,
+                                            contentDescription = "Decrement Page Progress",
+                                            modifier = Modifier.size(32.dp)
+                                        )
+                                    }
+                                }
                             }
                         }
 
@@ -887,6 +933,7 @@ fun EditBookDialog(
     var newAuthor by remember { mutableStateOf(books[0].author) }
     var newGenre by remember { mutableStateOf(books[0].genre) }
     var newTotalPages by remember { mutableStateOf(books[0].totalPages.toString()) }
+    var newReadingProgress by remember { mutableStateOf(books[0].readingProgress.toString()) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -927,6 +974,20 @@ fun EditBookDialog(
                     },
                     label = { Text("Total Pages") }
                 )
+
+                // Pages Read input
+                TextField(
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number // Set to Number Input Keyboard
+                    ),
+                    value = newReadingProgress,
+                    onValueChange = { newValue ->
+                        // Filter the input so that it only accepts integers explicitly
+                        val filterIntegers = newValue.filter { it.isDigit() }
+                        newReadingProgress = filterIntegers
+                    },
+                    label = { Text("Pages Read") }
+                )
             }
         },
         confirmButton = {
@@ -934,22 +995,26 @@ fun EditBookDialog(
                 onClick = {
                     // Ensure that all of the fields are not empty
                     if (newTitle.isNotEmpty() && newAuthor.isNotEmpty() &&
-                        newGenre.isNotEmpty() && newTotalPages.isNotEmpty()) {
-                        dbScope.launch {
-                            // Create new book object
-                            val newBook = Book(id = books[0].id, title = newTitle, author = newAuthor,
-                                genre = newGenre, dateAdded = books[0].dateAdded, totalPages = newTotalPages.toInt(),
-                                readingProgress = books[0].readingProgress)
+                        newGenre.isNotEmpty() && newTotalPages.isNotEmpty() && newReadingProgress.isNotEmpty()) {
 
-                            // Run the update function from the DAO
-                            bookDao.updateBook(newBook)
+                        // Ensure that the total pages read is not greater than total pages
+                        if (newReadingProgress <= newTotalPages) {
+                            dbScope.launch {
+                                // Create new book object
+                                val newBook = Book(id = books[0].id, title = newTitle, author = newAuthor,
+                                    genre = newGenre, dateAdded = books[0].dateAdded, totalPages = newTotalPages.toInt(),
+                                    readingProgress = newReadingProgress.toInt())
 
-                            // Refresh the current local state and add the updated book details
-                            books.clear()
-                            books.add(newBook)
+                                // Run the update function from the DAO
+                                bookDao.updateBook(newBook)
 
-                            // And close the dialog
-                            onDismiss()
+                                // Refresh the current local state and add the updated book details
+                                books.clear()
+                                books.add(newBook)
+
+                                // And close the dialog
+                                onDismiss()
+                            }
                         }
                     }
                 },
@@ -1021,4 +1086,55 @@ fun DeleteBookDialog(
             }
         }
     )
+}
+
+// Reusable component for creating a pie chart
+@Composable
+fun PieChart(
+    percentage: Float, // Between 0.0 - 1.0
+    innerText: String = "", // Optional
+    radius: Dp = 30.dp,
+    strokeWidth: Dp = 8.dp
+) {
+    Box(contentAlignment = Alignment.Center) {
+        Canvas(modifier = Modifier.size(radius * 2)) {
+            // Prepare values for the arcs
+            val stroke = Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round)
+            val center = Offset(size.width / 2, size.height / 2)
+            val diameter = size.minDimension
+
+            // Draw background arc/circle
+            drawArc(
+                color = Color.LightGray,
+                startAngle = 0f,
+                sweepAngle = 360f,
+                useCenter = false,
+                topLeft = Offset(center.x - diameter / 2, center.y - diameter / 2),
+                size = Size(diameter, diameter),
+                style = stroke
+            )
+
+            // Draw the active arc/circle
+            val sweepAngle = 360 * percentage // Calculate the arc angle
+            drawArc(
+                color = Color(0xFF737ADA),
+                startAngle = -90f, // Start from the top
+                sweepAngle = sweepAngle,
+                useCenter = false,
+                topLeft = Offset(center.x - diameter / 2, center.y - diameter / 2),
+                size = Size(diameter, diameter),
+                style = stroke
+            )
+        }
+
+        // Add text to the middle of the pie chart if it is set
+        if (innerText.isNotEmpty()) {
+            Text(
+                text = innerText,
+                fontSize = (radius.value / 2).sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
 }
