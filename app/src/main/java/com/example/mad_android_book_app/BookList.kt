@@ -145,7 +145,7 @@ fun BookListScreen(
 
             else if (selectedSortType == "readingProgress") {
                 // Calculate Progress
-                finalList = finalList.sortedBy { ((it.readingProgress / it.totalPages) * 100) }
+                finalList = finalList.sortedBy { (it.readingProgress.toDouble() / it.totalPages.toDouble()).toFloat() }
             }
 
             // Otherwise, sort by the dateAdded
