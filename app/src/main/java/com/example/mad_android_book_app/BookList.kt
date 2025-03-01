@@ -113,7 +113,7 @@ fun BookListScreen(
     var selectedSortType by remember { mutableStateOf("dateAdded") }
 
     // Pick direction, by default "descending"
-    var isSortAscending by remember { mutableStateOf(false) }
+    var isSortAscending by remember { mutableStateOf(true) }
 
     // Create a filtered state that is derived based on the searchQuery
     val filteredBooks by remember {
