@@ -107,7 +107,7 @@ fun BookListScreen(
         "genre" to "Genre",
         "dateAdded" to "Date Added",
         "totalPages" to "Total Pages",
-        "readingProgress" to "Reading Progress",
+        "readingProgress" to "Progress",
     )
     var sortExpanded by remember { mutableStateOf(false) }
     var selectedSortType by remember { mutableStateOf("dateAdded") }
