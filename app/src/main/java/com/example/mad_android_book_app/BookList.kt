@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -91,6 +93,13 @@ fun BookListScreen(
 
     // Setup states for searching and sorting
     var searchQuery by remember { mutableStateOf("") }
+    val searchOptions = mapOf(
+        "title" to "Title",
+        "author" to "Author",
+        "genre" to "Genre",
+    )
+    var searchFilterExpanded by remember { mutableStateOf(false) }
+    var selectedSearchFilter by remember { mutableStateOf("title") }
 
     val sortingOptions = mapOf(
         "title" to "Title",
@@ -114,9 +123,21 @@ fun BookListScreen(
                 books
             }
 
-            // Otherwise, filter the book list based on the title
+            // Otherwise, filter the book list based on the selected filter type
             else {
-                books.filter { it.title.contains(searchQuery, ignoreCase = true) }
+                // Search by currently selected filter
+                if (selectedSearchFilter == "title") {
+                    books.filter { it.title.contains(searchQuery, ignoreCase = true) }
+                }
+
+                else if (selectedSearchFilter == "author") {
+                    books.filter { it.author.contains(searchQuery, ignoreCase = true) }
+                }
+
+                // Otherwise, search by genre
+                else {
+                    books.filter { it.genre.contains(searchQuery, ignoreCase = true) }
+                }
             }
         }
     }
@@ -233,28 +254,66 @@ fun BookListScreen(
                         }
                     }
 
-                    // Search field for searching by book name
-                    TextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        label = { Text("Search for Books by Name...") },
-                        trailingIcon = {
-                            if (searchQuery.isNotEmpty()) {
-                                // Setup an icon button and set field to empty on click
-                                IconButton(onClick = { searchQuery = "" }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Clear,
-                                        contentDescription = "Clear Field",
-                                        modifier = Modifier.size(28.dp)
+                    // Search field besides Dropdown Menu for search filter type
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            label = { Text("Search for Books by ${selectedSearchFilter}...") },
+                            trailingIcon = {
+                                if (searchQuery.isNotEmpty()) {
+                                    // Setup an icon button and set field to empty on click
+                                    IconButton(onClick = { searchQuery = "" }) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Clear,
+                                            contentDescription = "Clear Field",
+                                            modifier = Modifier.size(28.dp)
+                                        )
+                                    }
+                                }
+                            },
+                            modifier = Modifier
+                                .weight(1f) // Take up the remaining space
+                                .clip(RoundedCornerShape(32.dp))
+                                .border(3.dp, Color(0xFF737ADA), RoundedCornerShape(32.dp))
+                        )
+
+                        Box {
+                            Button (
+                                onClick = { searchFilterExpanded = true },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF737ADA)
+                                ),
+                                modifier = Modifier.height(56.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.FilterAlt,
+                                    contentDescription = "Search Filter Button",
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            }
+
+                            DropdownMenu(
+                                expanded = searchFilterExpanded,
+                                onDismissRequest = { searchFilterExpanded = false }
+                            ) {
+                                searchOptions.forEach { type ->
+                                    DropdownMenuItem(
+                                        text = { Text(type.value) },
+                                        onClick = {
+                                            selectedSearchFilter = type.key
+                                            searchFilterExpanded = false
+                                        }
                                     )
                                 }
                             }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(32.dp))
-                            .border(3.dp, Color(0xFF737ADA), RoundedCornerShape(32.dp))
-                    )
+                        }
+                    }
+
 
                     // Button & Dropdown Menu for sorting
                     Row(
