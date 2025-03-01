@@ -1,21 +1,31 @@
 package com.example.mad_android_book_app
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -37,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -51,7 +62,7 @@ import java.util.Date
 import java.util.Locale
 import kotlin.math.floor
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun BookViewScreen(
     navController: NavHostController,
@@ -129,11 +140,73 @@ fun BookViewScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     if (books.size > 0) {
-                        Text(text = books[0].title, fontSize = 32.sp, fontWeight = FontWeight.Bold)
-                        Text(text = "Author: ${books[0].author}", fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
-                        Text(text = "Genre: ${books[0].genre}")
-                        Text(text = "Date Added: ${dateFormatter.format(Date(books[0].dateAdded))}")
-                        Text(text = "Pages Read: ${books[0].readingProgress} / Total Pages: ${books[0].totalPages}")
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text(text = books[0].title, fontSize = 32.sp, fontWeight = FontWeight.Bold)
+                            Text(text = "Author: ${books[0].author}", fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+                        }
+
+                        // Flow Row for each bubble, to allow for "flex wrapping"
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .border(1.dp, Color.Black, RoundedCornerShape(16.dp))
+                                    .background(Color(0xFF55B0DD))
+                                    .padding(12.dp, 2.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Tag,
+                                    contentDescription = "Genre Tag",
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(2.dp))
+                                Text(text = books[0].genre)
+                            }
+
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .border(1.dp, Color.Black, RoundedCornerShape(16.dp))
+                                    .background(Color(0xFF55B0DD))
+                                    .padding(12.dp, 2.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.DateRange,
+                                    contentDescription = "Date Tag",
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(text = dateFormatter.format(Date(books[0].dateAdded)))
+                            }
+
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .border(1.dp, Color.Black, RoundedCornerShape(16.dp))
+                                    .background(Color(0xFF55B0DD))
+                                    .padding(12.dp, 2.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.AutoStories,
+                                    contentDescription = "Pages Tag",
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(text = "Read: ${books[0].readingProgress} / Total: ${books[0].totalPages}")
+                            }
+                        }
 
                         Column(
                             verticalArrangement = Arrangement.spacedBy(4.dp)

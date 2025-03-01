@@ -495,12 +495,12 @@ fun BookCard(navController: NavHostController, book: Book) {
                     Text(text = book.author)
                 }
 
-                // Book Preview Image (top)
-                Image(
-                    painter = painterResource(id = R.drawable.books_image),
-                    contentDescription = "Book Icon",
-                    modifier = Modifier
-                        .size(40.dp)
+                // Percentage progress pie chart
+                PieChart(
+                    percentage = (book.readingProgress.toDouble() / book.totalPages.toDouble()).toFloat(),
+                    innerText = "${floor((book.readingProgress.toDouble() / book.totalPages.toDouble()) * 100).toInt()}%",
+                    radius = 25.dp,
+                    strokeWidth = 5.dp
                 )
             }
 
@@ -559,11 +559,11 @@ fun BookCard(navController: NavHostController, book: Book) {
                 ) {
                     Icon(
                         imageVector = Icons.Filled.CheckCircle,
-                        contentDescription = "Progress",
+                        contentDescription = "Reading Progress",
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "${floor((book.readingProgress.toDouble() / book.totalPages.toDouble()) * 100).toInt()}%")
+                    Text(text = book.readingProgress.toString())
                 }
             }
         }
