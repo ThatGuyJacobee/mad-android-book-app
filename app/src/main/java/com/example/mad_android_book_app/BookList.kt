@@ -40,6 +40,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
@@ -75,6 +77,9 @@ fun BookListScreen(
     navController: NavHostController,
     bookDao: BookDao,
 ) {
+    // Create a Snack barHostState state for displaying messages
+    val snackBarHostState = remember { SnackbarHostState() }
+
     // Prepare state for the add book dialog
     var addBook by remember { mutableStateOf(false) }
 
@@ -188,6 +193,7 @@ fun BookListScreen(
                 }
             )
         },
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         content = { innerPadding ->
             ConstraintLayout(
                 modifier = Modifier
@@ -364,7 +370,8 @@ fun BookListScreen(
                         onDismiss = { addBook = false },
                         dbScope = coroutineScope,
                         bookDao = bookDao,
-                        books = books
+                        books = books,
+                        snackBarHostState = snackBarHostState,
                     )
                 }
             }
@@ -378,13 +385,17 @@ fun AddBookDialog(
     onDismiss: () -> Unit,
     dbScope: CoroutineScope,
     bookDao: BookDao,
-    books: SnapshotStateList<Book>
+    books: SnapshotStateList<Book>,
+    snackBarHostState: SnackbarHostState
 ) {
     // Prepare states for each of the Book class attributes
     var newTitle by remember { mutableStateOf("") }
     var newAuthor by remember { mutableStateOf("") }
     var newGenre by remember { mutableStateOf("") }
     var newTotalPages by remember { mutableStateOf("") }
+
+    // Prepare an error message state which is empty by default
+    var errorMessage by remember { mutableStateOf("") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -425,15 +436,25 @@ fun AddBookDialog(
                     },
                     label = { Text("Total Pages") }
                 )
+
+                // Display an error message only if it is set
+                if (errorMessage.isNotEmpty()) {
+                    Text(text = errorMessage, color = Color(0xFFBE292F),
+                        modifier = Modifier.padding(0.dp, 6.dp, 0.dp, 0.dp))
+                }
             }
         },
         confirmButton = {
             Button(
                 onClick = {
-                    // Ensure that all of the fields are not empty
-                    if (newTitle.isNotEmpty() && newAuthor.isNotEmpty() &&
-                        newGenre.isNotEmpty() && newTotalPages.isNotEmpty()) {
-                        dbScope.launch {
+                    dbScope.launch {
+                        // Ensure that all of the fields are not empty
+                        if (newTitle.isEmpty() || newAuthor.isEmpty() ||
+                            newGenre.isEmpty() || newTotalPages.isEmpty()) {
+                            errorMessage = "Error: All fields must be populated."
+                        }
+
+                        else {
                             // Create new book object
                             val newBook = Book(title = newTitle, author = newAuthor, genre = newGenre,
                                 dateAdded = Date().time, totalPages = newTotalPages.toInt(),
@@ -446,8 +467,9 @@ fun AddBookDialog(
                             books.clear()
                             books.addAll(bookDao.getAllBooks())
 
-                            // And close the dialog
+                            // Lastly close the dialog & display a snack bar message
                             onDismiss()
+                            snackBarHostState.showSnackbar("Success: A new Book has been created.")
                         }
                     }
                 },

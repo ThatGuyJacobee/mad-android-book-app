@@ -33,6 +33,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
@@ -69,6 +71,9 @@ fun BookViewScreen(
     bookDao: BookDao,
     bookTitle: String
 ) {
+    // Create a Snack barHostState state for displaying messages
+    val snackBarHostState = remember { SnackbarHostState() }
+
     // States for the edit and delete buttons/dialogs
     var editBook by remember { mutableStateOf(false) }
     var deleteBook by remember { mutableStateOf(false) }
@@ -127,6 +132,7 @@ fun BookViewScreen(
                 }
             )
         },
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         content = { innerPadding ->
             ConstraintLayout(
                 modifier = Modifier
@@ -370,7 +376,8 @@ fun BookViewScreen(
                         onDismiss = { editBook = false },
                         dbScope = coroutineScope,
                         bookDao = bookDao,
-                        books = books
+                        books = books,
+                        snackBarHostState = snackBarHostState,
                     )
                 }
 
@@ -395,7 +402,8 @@ fun EditBookDialog(
     onDismiss: () -> Unit,
     dbScope: CoroutineScope,
     bookDao: BookDao,
-    books: SnapshotStateList<Book>
+    books: SnapshotStateList<Book>,
+    snackBarHostState: SnackbarHostState
 ) {
     // Prepare states for each of the Book class attributes
     var newTitle by remember { mutableStateOf(books[0].title) }
@@ -403,6 +411,9 @@ fun EditBookDialog(
     var newGenre by remember { mutableStateOf(books[0].genre) }
     var newTotalPages by remember { mutableStateOf(books[0].totalPages.toString()) }
     var newReadingProgress by remember { mutableStateOf(books[0].readingProgress.toString()) }
+
+    // Prepare an error message state which is empty by default
+    var errorMessage by remember { mutableStateOf("") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -457,33 +468,45 @@ fun EditBookDialog(
                     },
                     label = { Text("Pages Read") }
                 )
+
+                // Display an error message only if it is set
+                if (errorMessage.isNotEmpty()) {
+                    Text(text = errorMessage, color = Color(0xFFBE292F),
+                        modifier = Modifier.padding(0.dp, 6.dp, 0.dp, 0.dp))
+                }
             }
         },
         confirmButton = {
             Button(
                 onClick = {
-                    // Ensure that all of the fields are not empty
-                    if (newTitle.isNotEmpty() && newAuthor.isNotEmpty() &&
-                        newGenre.isNotEmpty() && newTotalPages.isNotEmpty() && newReadingProgress.isNotEmpty()) {
+                    dbScope.launch {
+                        // Ensure that all of the fields are not empty
+                        if (newTitle.isEmpty() || newAuthor.isEmpty() || newGenre.isEmpty()
+                            || newTotalPages.isEmpty() || newReadingProgress.isEmpty()) {
+                            errorMessage = "Error: All fields must be populated."
+                        }
 
-                        // Ensure that the total pages read is not greater than total pages
-                        if (newReadingProgress <= newTotalPages) {
-                            dbScope.launch {
-                                // Create new book object
-                                val newBook = Book(id = books[0].id, title = newTitle, author = newAuthor,
-                                    genre = newGenre, dateAdded = books[0].dateAdded, totalPages = newTotalPages.toInt(),
-                                    readingProgress = newReadingProgress.toInt())
+                        // Ensure that the page progress is not greater than total pages
+                        else if (newReadingProgress.toInt() > newTotalPages.toInt()) {
+                            errorMessage = "Error: Page progress cannot be greater than the total pages."
+                        }
 
-                                // Run the update function from the DAO
-                                bookDao.updateBook(newBook)
+                        else {
+                            // Create new book object
+                            val newBook = Book(id = books[0].id, title = newTitle, author = newAuthor,
+                                genre = newGenre, dateAdded = books[0].dateAdded, totalPages = newTotalPages.toInt(),
+                                readingProgress = newReadingProgress.toInt())
 
-                                // Refresh the current local state and add the updated book details
-                                books.clear()
-                                books.add(newBook)
+                            // Run the update function from the DAO
+                            bookDao.updateBook(newBook)
 
-                                // And close the dialog
-                                onDismiss()
-                            }
+                            // Refresh the current local state and add the updated book details
+                            books.clear()
+                            books.add(newBook)
+
+                            // Lastly close the dialog & display a snack bar message
+                            onDismiss()
+                            snackBarHostState.showSnackbar("Success: The Book has been edited.")
                         }
                     }
                 },
