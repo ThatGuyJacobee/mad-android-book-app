@@ -1,5 +1,6 @@
 package com.example.mad_android_book_app
 
+import android.content.ClipData
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -22,6 +23,7 @@ import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Edit
@@ -51,6 +53,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -73,6 +77,9 @@ fun BookViewScreen(
 ) {
     // Create a Snack barHostState state for displaying messages
     val snackBarHostState = remember { SnackbarHostState() }
+
+    // Get the current context to allow for copying to clipboard
+    val clipboardManager = LocalClipboardManager.current
 
     // States for the edit and delete buttons/dialogs
     var editBook by remember { mutableStateOf(false) }
@@ -246,7 +253,7 @@ fun BookViewScreen(
                                     )
                                 }
 
-                                // And besides create a counter to allow for easy incrementing/decrementing
+                                // Besides create a counter to allow for easy incrementing/decrementing
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
@@ -299,6 +306,47 @@ fun BookViewScreen(
                                         Icon(
                                             imageVector = Icons.Filled.ArrowDropDown,
                                             contentDescription = "Decrement Page Progress",
+                                            modifier = Modifier.size(32.dp)
+                                        )
+                                    }
+                                }
+
+                                // Lastly add a button to allow for copying a summary
+                                Button(
+                                    onClick = {
+                                        coroutineScope.launch {
+                                            // Generate a book summary string
+                                            val summary = generateBookSummary(books[0])
+
+                                            // Create new clipboard data entry via ClipEntry object
+                                            val newClip = ClipData.newPlainText("Book Summary", summary)
+                                            val clipEntry = ClipEntry(newClip)
+
+                                            // Now set it as the primary/currently active
+                                            clipboardManager.setClip(clipEntry)
+
+                                            // And return a success message
+                                            snackBarHostState.showSnackbar("Success: Book summary generated and has been copied to your clipboard.")
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF737ADA)
+                                    )
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center,
+                                    ) {
+                                        Text(
+                                            text = "Book Summary",
+                                            modifier = Modifier.padding(8.dp),
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+
+                                        Icon(
+                                            imageVector = Icons.Filled.ContentCopy,
+                                            contentDescription = "Book Summary",
                                             modifier = Modifier.size(32.dp)
                                         )
                                     }
