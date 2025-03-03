@@ -17,6 +17,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.text.SimpleDateFormat
+import java.util.Locale
 import kotlin.math.floor
 
 // Reusable component for creating a pie chart
@@ -74,11 +76,14 @@ fun PieChart(
 fun generateBookSummary(book: Book): String {
     var fullString = "----- Book Summary -----\n"
 
+    // Prepare a date formatter for the creation date
+    val dateFormatter = SimpleDateFormat("HH:mm / dd-MM-yyyy", Locale.getDefault())
+
     // Add new lines which cover all of the book's data
     fullString += "Title: ${book.title}\n"
     fullString += "Author: ${book.author}\n"
     fullString += "Genre: ${book.genre}\n"
-    fullString += "Date Added: ${book.dateAdded}\n"
+    fullString += "Date Added: ${dateFormatter.format(book.dateAdded)}\n"
     fullString += "Total Pages: ${book.totalPages}\n"
     fullString += "Progress: ${book.readingProgress} / ${book.totalPages} (${floor((book.readingProgress.toDouble() / book.totalPages.toDouble()) * 100).toInt()}%)"
     return fullString
