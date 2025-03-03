@@ -52,18 +52,18 @@ fun AppNavigation(bookDao: BookDao) {
         composable("book.list") { BookListScreen(navController, bookDao) }
 
         // Setup a route, that includes an argument/prop that can be passed through
-        // Here, the book title is passed as a String, which is used in the screen function
+        // Here, the book id is passed as a String, which is used in the screen function
         composable(
-            "book.view/{bookTitle}",
-            arguments = listOf(navArgument("bookTitle")
+            "book.view/{bookId}",
+            arguments = listOf(navArgument("bookId")
             { type = NavType.StringType })
         ) { navBackStackEntry ->
             // Get the passed through argument
-            val bookTitle = navBackStackEntry.arguments?.getString("bookTitle")
+            val bookId = navBackStackEntry.arguments?.getString("bookId")
 
             // If it's set, render the book view screen
-            if (bookTitle != null) {
-                BookViewScreen(navController, bookDao, bookTitle)
+            if (bookId != null) {
+                BookViewScreen(navController, bookDao, bookId.toInt())
             }
 
             // Otherwise, render that an error has occurred

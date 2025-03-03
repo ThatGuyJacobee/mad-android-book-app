@@ -73,7 +73,7 @@ import kotlin.math.floor
 fun BookViewScreen(
     navController: NavHostController,
     bookDao: BookDao,
-    bookTitle: String
+    bookId: Int
 ) {
     // Create a Snack barHostState state for displaying messages
     val snackBarHostState = remember { SnackbarHostState() }
@@ -94,10 +94,10 @@ fun BookViewScreen(
     // Prepare a date formatter for the creation date
     val dateFormatter = SimpleDateFormat("HH:mm / dd-MM-yyyy", Locale.getDefault())
 
-    // Fetch the Book record by the name and add it to the state
+    // Fetch the Book record by the id and add it to the state
     // Upon screen rendering
     LaunchedEffect(Unit) {
-        books.add(bookDao.getBook(bookTitle))
+        books.add(bookDao.getBook(bookId))
     }
 
     Scaffold(

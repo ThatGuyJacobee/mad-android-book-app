@@ -557,7 +557,7 @@ fun BookCard(navController: NavHostController, book: Book) {
         modifier = Modifier.fillMaxWidth(),
         onClick = {
             // On card click, navigate to the view screen and pass the target book as attribute
-            navController.navigate("book.view/${book.title}")
+            navController.navigate("book.view/${book.id}")
         }
     ) {
         Column(
