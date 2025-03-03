@@ -78,6 +78,9 @@ fun BookViewScreen(
     // Create a Snack barHostState state for displaying messages
     val snackBarHostState = remember { SnackbarHostState() }
 
+    // Create a state for the back button
+    var isReturnSelected by remember { mutableStateOf(false) }
+
     // Get the current context to allow for copying to clipboard
     val clipboardManager = LocalClipboardManager.current
 
@@ -109,7 +112,17 @@ fun BookViewScreen(
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         IconButton(
-                            onClick = { navController.popBackStack() }
+                            onClick = {
+                                // Check that the page is not already being navigated back
+                                if (!isReturnSelected) {
+                                    // And if not, set the state, launch a coroutine
+                                    // and pop the navigation stack
+                                    isReturnSelected = true
+                                    coroutineScope.launch {
+                                        navController.popBackStack()
+                                    }
+                                }
+                            }
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
