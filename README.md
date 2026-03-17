@@ -16,3 +16,8 @@ The app was developed over the course of a few weeks and was split up into vario
 
 ## Conclusion 👍
 The project was a success, resulting in a 100% (A+) grade. It was a great learning experience using Kotlin and Jetpack Compose - diving into native mobile app development for the first time which paired well with prior Java and React knowledge.
+
+<img height="400" alt="image" src="https://github.com/user-attachments/assets/bc6096f5-164b-48c3-8caa-013920d22456" />
+
+## License 📄
+[MIT © ThatGuyJacobee](./LICENSE)
